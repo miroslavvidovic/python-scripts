@@ -18,8 +18,13 @@ pyautogui.FAILSAFE = False
 def move_the_mouse():
     """Function moves the cursor in the upper right corner and then 100 px
     to the right side"""
-    pyautogui.moveTo(10, 10, duration=0.50)
-    pyautogui.moveTo(100, 10, duration=0.50)
+    # Get the screen size
+    screen_width, screen_height = pyautogui.size()
+    # Move the mouse in a rectange shape
+    pyautogui.moveTo(60, 60, duration=0.50)
+    pyautogui.moveTo(screen_width - 60, 60, duration=0.50)
+    pyautogui.moveTo(screen_width - 60, screen_height - 60, duration=0.50)
+    pyautogui.moveTo(60, screen_height - 60, duration=0.50)
 
 
 def sleep(seconds):
@@ -29,11 +34,12 @@ def sleep(seconds):
 
 def main():
     """Calling the move_the_mouse and sleep functions in an infinite loop"""
+    print("Mouse mover")
     print("Press Ctrl + c to terminate the script.")
     try:
         while True:
             move_the_mouse()
-            sleep(3)
+            sleep(2)
 
     except KeyboardInterrupt:
         print("Finished.")
