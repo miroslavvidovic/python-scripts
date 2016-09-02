@@ -8,7 +8,8 @@ Pillow
 Xlib
 pyautogui
 """
-import pyautogui, time
+import time
+import pyautogui
 
 # Disabling FAILSAFE
 # Check pyautogui documentation for more info
