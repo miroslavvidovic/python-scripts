@@ -22,8 +22,8 @@ def get_args():
     :rtype: (integer, integer, integer)
     """
     parser = argparse.ArgumentParser(description='Get the beloved Garfield comic.', \
-        epilog="The best way to keep track of Garfield. NOTE: 1st issue of Garfield \
-        was on June 19th, 1978 ")
+        epilog="The best way to keep track of Garfield. NOTE: 1st issue of Garfield" \
+            "was on June 19th, 1978 ")
 
     # Available arguments
     parser.add_argument('-y', '--year', type=int, help='year the comic was published')
