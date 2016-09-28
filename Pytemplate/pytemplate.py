@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Script creates new python scripts"""
 
 # Import the modules needed to run the script.
