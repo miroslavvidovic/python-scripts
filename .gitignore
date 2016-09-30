@@ -90,3 +90,7 @@ ENV/
 
 # Pycharm Idea
 .idea
+
+# Cache files
+*.dbm
+*.lock
