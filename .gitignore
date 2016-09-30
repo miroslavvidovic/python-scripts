@@ -94,3 +94,6 @@ ENV/
 # Cache files
 *.dbm
 *.lock
+
+# Visual studio code files
+.vscode
