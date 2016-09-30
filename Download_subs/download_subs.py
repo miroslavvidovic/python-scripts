@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
-""" download_subs.py : short descripton of what the script does
+""" download_subs.py : movie information and download subtitles
 
-Longer description
+Display file details, movie information from the OMDB API and download appropriate
+subtitles in english and serbian language
 """
 
-import os
 import io
 import argparse
-import requests
 import json
 from urllib.request import urlopen
-from babelfish import *
-from subliminal import *
+import requests
+from babelfish import Language
+from subliminal import Video, download_best_subtitles, region, save_subtitles
 from PIL import Image
 from Spinner import Spinner
 
@@ -24,15 +24,16 @@ __status__ = "Development"
 
 def get_args():
     """
-    Get the arguments with argparse
+    Get end parse the arguments with argparse
 
     """
     parser = argparse.ArgumentParser(description='Download subtitles for your movie.', \
         epilog="Script will download english and serbian subtitles for your video file. ")
 
-    parser.add_argument('-f','--file', help='Video file that needs subtitles', required=True)
-    parser.add_argument('-d','--download', help='Download the subtitles', action="store_true", required=False)
-    parser.add_argument('-i','--info', help='Show IMDB info', action="store_true", required=False)
+    parser.add_argument('-f', '--file', help='Video file that needs subtitles', required=True)
+    parser.add_argument('-d', '--download', help='Download the subtitles',
+                        action="store_true", required=False)
+    parser.add_argument('-i', '--info', help='Show OMDB info', action="store_true", required=False)
 
     # Print script version
     parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
@@ -40,37 +41,47 @@ def get_args():
     # Parse the arguments
     args = parser.parse_args()
 
+    # Extract individual variables from args
     file_path = args.file
     download_subs = args.download
-    show_imdb_info = args.info
+    show_omdb_info = args.info
 
-    return file_path, download_subs, show_imdb_info
+    return file_path, download_subs, show_omdb_info
 
 def omdb_details(name, year):
     """
     Get the movie details using the ODMB API
 
+    Print the details about the movie and the plot. Show the movie poster.
+
+    :param name: name of the movie
+    :type name: string
+    :param year: movie release year
+    :type year: string
+
     """
-    #TODO: Format the movie name with word+word and then use it in the get request
-    request = requests.get('http://www.omdbapi.com/?t=We+still+kill+the+old+way&y=2014&plot=short&r=json')
+
+    name = name.replace(" ", "+")
+    request = requests.get('http://www.omdbapi.com/?t=%s\
+        &y=%s&plot=short&r=json' % (name, year))
     data = json.loads(request.text)
-    print (json.dumps(data, indent=4, sort_keys=True))
+    print(json.dumps(data, indent=4, sort_keys=True))
 
     file_location = urlopen(data["Poster"])
-    print(file_location)
     image_file = io.BytesIO(file_location.read())
     poster = Image.open(image_file)
     poster.show()
 
 def short_details(video_file):
     """
-    Print short info
+    Short info
 
-    Print the movie title, year and some basic info about the file.
+    Get some basic iformation about the movie and the video file.
 
-    :param video_file:
-    :returns:
-    :rtype:
+    :param video_file: movie video file
+    :type video file: subliminal Video object
+    :returns: info about the movie and the file
+    :rtype: string
 
     """
 
@@ -100,25 +111,36 @@ def main():
 
     """
 
-    file_path, download_subs, show_imdb_info = get_args()
+    file_path, download_subs, show_omdb_info = get_args()
     video_file = Video.fromname(file_path)
 
+    # Display the short info
     short_info = short_details(video_file)
     print(short_info)
 
-    if download_subs == True:
-      spinner = Spinner()
-      spinner.start()
+    # If -i flag is set show the info from the omdb api
+    if show_omdb_info is True:
+        spinner = Spinner()
+        spinner.start()
+        omdb_details(video_file.title, video_file.year)
+        spinner.stop()
 
-      region.configure('dogpile.cache.dbm', arguments={'filename': 'cachefile.dbm'})
-      best_subtitles = download_best_subtitles([video_file], {Language('eng'), Language('srp')}, providers=None)
-      spinner.stop()
-
-      print(best_subtitles[video_file])
-      best_subtitle_sr = best_subtitles[video_file][0]
-      best_subtitle_en = best_subtitles[video_file][1]
-      save_subtitles(video_file, [best_subtitle_sr])
-      save_subtitles(video_file, [best_subtitle_en])
+    # If -d flag is set download the best matching subtitles
+    if download_subs is True:
+        spinner = Spinner()
+        spinner.start()
+        # Set the cache
+        region.configure('dogpile.cache.dbm', arguments={'filename': 'cachefile.dbm'})
+        # Download subtitles in serbian and english
+        best_subtitles = download_best_subtitles([video_file], {Language('eng'),\
+                        Language('srp')}, providers=None)
+        spinner.stop()
+        print(best_subtitles[video_file])
+        best_subtitle_sr = best_subtitles[video_file][0]
+        best_subtitle_en = best_subtitles[video_file][1]
+        # Save the 2 subtitle files
+        save_subtitles(video_file, [best_subtitle_sr])
+        save_subtitles(video_file, [best_subtitle_en])
 
 if __name__ == '__main__':
     main()
